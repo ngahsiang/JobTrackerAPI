@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Job Application Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --surface2: #1e1e24;
+      --border: #2a2a33;
+      --accent: #7b61ff;
+      --accent2: #00e5c3;
+      --text: #e8e8f0;
+      --muted: #6b6b7e;
+      --danger: #ff5470;
+      --warn: #ffb830;
+      --success: #00e5c3;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Auth Screen ── */
+    #auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      background:
+        radial-gradient(ellipse 60% 50% at 70% 20%, rgba(123,97,255,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 20% 80%, rgba(0,229,195,0.08) 0%, transparent 60%),
+        var(--bg);
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+    }
+
+    .auth-card h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 0.3rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .auth-card p.subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+
+    .tab-row { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .tab-btn {
+      flex: 1; padding: 0.55rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--muted);
+      font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem; margin-top: 1rem; }
+    input, select, textarea {
+      width: 100%; padding: 0.7rem 1rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      outline: none; transition: border 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      padding: 0.75rem 1.5rem; border-radius: 10px; border: none;
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary { background: var(--accent); color: #fff; width: 100%; margin-top: 1.5rem; }
+    .btn-primary:hover { filter: brightness(1.15); }
+    .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-danger { background: var(--danger); color: #fff; }
+
+    .error-msg { color: var(--danger); font-size: 0.82rem; margin-top: 0.8rem; text-align: center; }
+
+    /* ── App Layout ── */
+    #app-screen { display: none; min-height: 100vh; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    header .logo {
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    header .user-info { display: flex; align-items: center; gap: 1rem; color: var(--muted); font-size: 0.85rem; }
+    header .user-info strong { color: var(--text); }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+    /* ── Stats ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.2rem 1rem; text-align: center;
+    }
+    .stat-card .stat-num { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+    .stat-card .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-card.total .stat-num { color: var(--accent); }
+    .stat-card.applied .stat-num { color: #60a5fa; }
+    .stat-card.interview .stat-num { color: var(--warn); }
+    .stat-card.offer .stat-num { color: var(--success); }
+    .stat-card.rejected .stat-num { color: var(--danger); }
+
+    /* ── Controls ── */
+    .controls { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+    .controls input, .controls select { width: auto; flex: 1; min-width: 160px; }
+
+    /* ── App Table ── */
+    .applications-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .app-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.2rem 1.5rem;
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: center; gap: 1rem;
+      transition: border-color 0.2s;
+    }
+    .app-card:hover { border-color: var(--accent); }
+    .app-card .company { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+    .app-card .position { color: var(--muted); font-size: 0.85rem; margin-top: 0.1rem; }
+    .app-card .meta { display: flex; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 0.2rem 0.6rem; border-radius: 6px;
+      font-size: 0.72rem; font-weight: 700; font-family: 'Syne', sans-serif;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .badge-wishlist   { background: rgba(107,107,126,0.2); color: var(--muted); }
+    .badge-applied    { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .badge-interview  { background: rgba(255,184,48,0.15); color: var(--warn); }
+    .badge-offer      { background: rgba(0,229,195,0.15); color: var(--success); }
+    .badge-rejected   { background: rgba(255,84,112,0.15); color: var(--danger); }
+    .badge-withdrawn  { background: rgba(107,107,126,0.2); color: var(--muted); }
+
+    .app-card .actions { display: flex; gap: 0.5rem; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 200;
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2rem; width: 100%; max-width: 500px;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal h2 { font-family: 'Syne', sans-serif; font-weight: 800; margin-bottom: 1.2rem; }
+    .modal-footer { display: flex; gap: 0.75rem; margin-top: 1.5rem; justify-content: flex-end; }
+
+    .empty-state {
+      text-align: center; padding: 4rem 2rem; color: var(--muted);
+    }
+    .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--text); }
+
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .section-header h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+
+<!-- ── Auth Screen ── -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <h1>Job Tracker</h1>
+    <p class="subtitle">Track every application. Land the job.</p>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+      <button class="tab-btn" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <div id="login-form">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="you@email.com"/>
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••"/>
+      <button class="btn btn-primary" onclick="doLogin()">Login →</button>
+      <div class="error-msg" id="login-error"></div>
+    </div>
+
+    <div id="register-form" style="display:none">
+      <label>Full Name</label>
+      <input type="text" id="reg-name" placeholder="Jane Doe"/>
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="you@email.com"/>
+      <label>Password</label>
+      <input type="password" id="reg-password" placeholder="Min. 6 characters"/>
+      <button class="btn btn-primary" onclick="doRegister()">Create Account →</button>
+      <div class="error-msg" id="register-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── App Screen ── -->
+<div id="app-screen">
+  <header>
+    <span class="logo">◈ Job Tracker</span>
+    <div class="user-info">
+      <span>Hello, <strong id="user-name-display">—</strong></span>
+      <button class="btn btn-sm btn-outline" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card total"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total</div></div>
+      <div class="stat-card applied"><div class="stat-num" id="stat-applied">—</div><div class="stat-label">Applied</div></div>
+      <div class="stat-card interview"><div class="stat-num" id="stat-interview">—</div><div class="stat-label">Interview</div></div>
+      <div class="stat-card offer"><div class="stat-num" id="stat-offer">—</div><div class="stat-label">Offers</div></div>
+      <div class="stat-card rejected"><div class="stat-num" id="stat-rejected">—</div><div class="stat-label">Rejected</div></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <input type="text" id="search-company" placeholder="🔍 Search company..." oninput="loadApplications()"/>
+      <select id="filter-status" onchange="loadApplications()">
+        <option value="">All Statuses</option>
+        <option value="wishlist">Wishlist</option>
+        <option value="applied">Applied</option>
+        <option value="interview">Interview</option>
+        <option value="offer">Offer</option>
+        <option value="rejected">Rejected</option>
+        <option value="withdrawn">Withdrawn</option>
+      </select>
+      <button class="btn btn-primary btn-sm" style="width:auto" onclick="openAddModal()">+ Add Application</button>
+      <button class="btn btn-sm" style="width:auto;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-weight:700" onclick="openImportModal()">⬆ Import CSV</button>
+    </div>
+
+    <!-- List -->
+    <div class="section-header">
+      <h2>Applications</h2>
+    </div>
+    <div class="applications-list" id="applications-list">
+      <div class="empty-state"><h3>Loading...</h3></div>
+    </div>
+  </main>
+</div>
+
+<!-- ── Add/Edit Modal ── -->
+<div class="modal-overlay" id="app-modal">
+  <div class="modal">
+    <h2 id="modal-title">New Application</h2>
+    <input type="hidden" id="modal-app-id"/>
+    <label>Company *</label>
+    <input type="text" id="f-company" placeholder="Google"/>
+    <label>Position *</label>
+    <input type="text" id="f-position" placeholder="Software Engineer"/>
+    <label>Location</label>
+    <input type="text" id="f-location" placeholder="Singapore / Remote"/>
+    <label>Job URL</label>
+    <input type="text" id="f-url" placeholder="https://..."/>
+    <label>Status</label>
+    <select id="f-status">
+      <option value="wishlist">Wishlist</option>
+      <option value="applied" selected>Applied</option>
+      <option value="interview">Interview</option>
+      <option value="offer">Offer</option>
+      <option value="rejected">Rejected</option>
+      <option value="withdrawn">Withdrawn</option>
+    </select>
+    <label>Applied Date</label>
+    <input type="datetime-local" id="f-applied-date"/>
+    <label>Follow-Up Date</label>
+    <input type="datetime-local" id="f-followup-date"/>
+    <label>Notes</label>
+    <textarea id="f-notes" rows="3" placeholder="Any notes..."></textarea>
+    <div class="error-msg" id="modal-error"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" style="width:auto" onclick="saveApplication()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CSV Import Modal ── -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal">
+    <h2>⬆ Import CSV</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1.2rem;line-height:1.6">
+      Import your job applications from a <strong style="color:var(--text)">LinkedIn</strong> or
+      <strong style="color:var(--text)">JobStreet</strong> CSV export.
+      Duplicate entries (same company + position) will be skipped automatically.
+    </p>
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1.2rem;font-size:0.82rem;color:var(--muted);line-height:1.7">
+      <strong style="color:var(--accent);display:block;margin-bottom:0.4rem">LinkedIn</strong>
+      Jobs → My Jobs → Applied Jobs → More (⋯) → Export
+      <br/>
+      <strong style="color:var(--accent2);display:block;margin-top:0.6rem;margin-bottom:0.4rem">JobStreet</strong>
+      Profile → Application History → Export CSV
+    </div>
+
+    <label>Select CSV File</label>
+    <input type="file" id="import-file" accept=".csv"
+      style="padding:0.6rem;cursor:pointer"/>
+
+    <div id="import-result" style="display:none;margin-top:1rem;border-radius:10px;padding:1rem;font-size:0.83rem;line-height:1.7"></div>
+    <div class="error-msg" id="import-error"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeImportModal()">Close</button>
+      <button class="btn btn-primary btn-sm" style="width:auto" id="import-btn" onclick="doImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = '';  // same origin
+  let token = localStorage.getItem('jt_token') || '';
+  let currentUser = null;
+
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+  }
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', (i === 0) === (tab === 'login')));
+    document.getElementById('login-form').style.display = tab === 'login' ? '' : 'none';
+    document.getElementById('register-form').style.display = tab === 'register' ? '' : 'none';
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-password').value;
+    const body = new URLSearchParams({ username: email, password: pass });
+    const res = await fetch(`${API}/api/auth/login`, { method: 'POST', body });
+    const data = await res.json();
+    if (!res.ok) { document.getElementById('login-error').textContent = data.detail || 'Login failed'; return; }
+    token = data.access_token;
+    localStorage.setItem('jt_token', token);
+    await loadApp();
+  }
+
+  async function doRegister() {
+    const name = document.getElementById('reg-name').value;
+    const email = document.getElementById('reg-email').value;
+    const password = document.getElementById('reg-password').value;
+    const res = await fetch(`${API}/api/auth/register`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) { document.getElementById('register-error').textContent = data.detail || 'Registration failed'; return; }
+    switchTab('login');
+    document.getElementById('login-email').value = email;
+  }
+
+  function logout() {
+    token = ''; localStorage.removeItem('jt_token');
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+  }
+
+  async function loadApp() {
+    const res = await fetch(`${API}/api/auth/me`, { headers: authHeaders() });
+    if (!res.ok) { logout(); return; }
+    currentUser = await res.json();
+    document.getElementById('user-name-display').textContent = currentUser.name;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    loadStats();
+    loadApplications();
+  }
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
+  async function loadStats() {
+    const res = await fetch(`${API}/api/applications/stats`, { headers: authHeaders() });
+    const data = await res.json();
+    document.getElementById('stat-total').textContent = data.total ?? 0;
+    document.getElementById('stat-applied').textContent = data.applied ?? 0;
+    document.getElementById('stat-interview').textContent = data.interview ?? 0;
+    document.getElementById('stat-offer').textContent = data.offer ?? 0;
+    document.getElementById('stat-rejected').textContent = data.rejected ?? 0;
+  }
+
+  // ── Applications ──────────────────────────────────────────────────────────
+  async function loadApplications() {
+    const company = document.getElementById('search-company').value;
+    const status = document.getElementById('filter-status').value;
+    let url = `${API}/api/applications/?page_size=50`;
+    if (company) url += `&company=${encodeURIComponent(company)}`;
+    if (status) url += `&status=${status}`;
+
+    const res = await fetch(url, { headers: authHeaders() });
+    const data = await res.json();
+    renderApplications(data.results || []);
+  }
+
+  function renderApplications(apps) {
+    const el = document.getElementById('applications-list');
+    if (!apps.length) {
+      el.innerHTML = `<div class="empty-state"><h3>No applications yet</h3><p>Add your first application to get started.</p></div>`;
+      return;
+    }
+    el.innerHTML = apps.map(app => `
+      <div class="app-card">
+        <div>
+          <div class="company">${app.company}</div>
+          <div class="position">${app.position}${app.location ? ' · ' + app.location : ''}</div>
+          <div class="meta">
+            <span class="badge badge-${app.status}">${app.status}</span>
+            ${app.applied_date ? `<span style="color:var(--muted);font-size:0.78rem">Applied: ${app.applied_date.slice(0,10)}</span>` : ''}
+            ${app.follow_up_date ? `<span style="color:var(--warn);font-size:0.78rem">Follow-up: ${app.follow_up_date.slice(0,10)}</span>` : ''}
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-sm btn-outline" onclick="openEditModal(${app.id})">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteApplication(${app.id})">Del</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  let editingApps = {};
+
+  function openAddModal() {
+    document.getElementById('modal-title').textContent = 'New Application';
+    document.getElementById('modal-app-id').value = '';
+    ['f-company','f-position','f-location','f-url','f-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-status').value = 'applied';
+    document.getElementById('f-applied-date').value = '';
+    document.getElementById('f-followup-date').value = '';
+    document.getElementById('modal-error').textContent = '';
+    document.getElementById('app-modal').classList.add('open');
+  }
+
+  async function openEditModal(id) {
+    const res = await fetch(`${API}/api/applications/${id}`, { headers: authHeaders() });
+    const app = await res.json();
+    document.getElementById('modal-title').textContent = 'Edit Application';
+    document.getElementById('modal-app-id').value = id;
+    document.getElementById('f-company').value = app.company;
+    document.getElementById('f-position').value = app.position;
+    document.getElementById('f-location').value = app.location || '';
+    document.getElementById('f-url').value = app.job_url || '';
+    document.getElementById('f-status').value = app.status;
+    document.getElementById('f-notes').value = app.notes || '';
+    document.getElementById('f-applied-date').value = app.applied_date ? app.applied_date.slice(0,16) : '';
+    document.getElementById('f-followup-date').value = app.follow_up_date ? app.follow_up_date.slice(0,16) : '';
+    document.getElementById('modal-error').textContent = '';
+    document.getElementById('app-modal').classList.add('open');
+  }
+
+  function closeModal() { document.getElementById('app-modal').classList.remove('open'); }
+
+  async function saveApplication() {
+    const id = document.getElementById('modal-app-id').value;
+    const payload = {
+      company: document.getElementById('f-company').value,
+      position: document.getElementById('f-position').value,
+      location: document.getElementById('f-location').value || null,
+      job_url: document.getElementById('f-url').value || null,
+      status: document.getElementById('f-status').value,
+      notes: document.getElementById('f-notes').value || null,
+      applied_date: document.getElementById('f-applied-date').value || null,
+      follow_up_date: document.getElementById('f-followup-date').value || null,
+    };
+    const url = id ? `${API}/api/applications/${id}` : `${API}/api/applications/`;
+    const method = id ? 'PATCH' : 'POST';
+    const res = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(payload) });
+    if (!res.ok) {
+      const err = await res.json();
+      document.getElementById('modal-error').textContent = err.detail || 'Save failed';
+      return;
+    }
+    closeModal(); loadApplications(); loadStats();
+  }
+
+  async function deleteApplication(id) {
+    if (!confirm('Delete this application?')) return;
+    await fetch(`${API}/api/applications/${id}`, { method: 'DELETE', headers: authHeaders() });
+    loadApplications(); loadStats();
+  }
+
+  // ── CSV Import ────────────────────────────────────────────────────────────
+  function openImportModal() {
+    document.getElementById('import-file').value = '';
+    document.getElementById('import-error').textContent = '';
+    document.getElementById('import-result').style.display = 'none';
+    document.getElementById('import-btn').textContent = 'Import';
+    document.getElementById('import-btn').disabled = false;
+    document.getElementById('import-modal').classList.add('open');
+  }
+
+  function closeImportModal() {
+    document.getElementById('import-modal').classList.remove('open');
+    loadApplications();
+    loadStats();
+  }
+
+  async function doImport() {
+    const fileInput = document.getElementById('import-file');
+    const errorEl = document.getElementById('import-error');
+    const resultEl = document.getElementById('import-result');
+    const btn = document.getElementById('import-btn');
+
+    errorEl.textContent = '';
+    resultEl.style.display = 'none';
+
+    if (!fileInput.files.length) {
+      errorEl.textContent = 'Please select a CSV file first.';
+      return;
+    }
+
+    const file = fileInput.files[0];
+    if (!file.name.endsWith('.csv')) {
+      errorEl.textContent = 'Only .csv files are accepted.';
+      return;
+    }
+
+    btn.textContent = 'Importing...';
+    btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(`${API}/api/import/csv`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorEl.textContent = data.detail?.message || data.detail || 'Import failed.';
+        btn.textContent = 'Import'; btn.disabled = false;
+        return;
+      }
+
+      const platformLabel = data.platform_detected === 'linkedin' ? '🔵 LinkedIn' : '🟠 JobStreet';
+      const errBlock = data.errors?.length
+        ? `<div style="margin-top:0.6rem;color:var(--danger)">⚠ Parse errors (${data.errors.length}):<br>${data.errors.join('<br>')}</div>`
+        : '';
+
+      resultEl.innerHTML = `
+        <div style="color:var(--success);font-weight:700;font-size:0.95rem;margin-bottom:0.5rem">✅ Import Complete</div>
+        <div><strong>Platform:</strong> ${platformLabel}</div>
+        <div><strong>Total rows in file:</strong> ${data.total_rows_in_file}</div>
+        <div style="color:var(--success)"><strong>✔ Imported:</strong> ${data.imported}</div>
+        <div style="color:var(--muted)"><strong>⟳ Skipped (duplicates):</strong> ${data.skipped_duplicates}</div>
+        ${errBlock}
+        ${data.imported_jobs?.length ? `<div style="margin-top:0.6rem;color:var(--muted);font-size:0.78rem">${data.imported_jobs.map(j => '✔ ' + j).join('<br>')}</div>` : ''}
+      `;
+      resultEl.style.display = 'block';
+      resultEl.style.background = 'rgba(0,229,195,0.05)';
+      resultEl.style.border = '1px solid rgba(0,229,195,0.2)';
+
+    } catch (e) {
+      errorEl.textContent = 'Network error. Is the server running?';
+    }
+
+    btn.textContent = 'Import Again';
+    btn.disabled = false;
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  if (token) { loadApp(); }
+  else { document.getElementById('auth-screen').style.display = 'flex'; }
+</script>
+</body>
+</html>
